@@ -3,7 +3,6 @@ pragma solidity ^0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 import {Vm} from "forge-std/Vm.sol";
-import {console} from "forge-std/console.sol";
 import {IEntryPoint} from "@openzeppelin/contracts/interfaces/draft-IERC4337.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ModularSmartAccount} from "../../contracts/accounts/ModularSmartAccount.sol";
@@ -110,11 +109,6 @@ abstract contract ModularAccountTestBase is Test {
     /// @notice Helper to expect revert with error and data
     function expectRevertWithError(bytes memory errorData) internal {
         vm.expectRevert(errorData);
-    }
-
-    /// @notice Print gas usage for debugging
-    function printGas(string memory label, uint256 gasUsed) internal view {
-        console.log(string.concat(label, ":"), gasUsed);
     }
 
     /// @notice Helper to check if an array contains a specific address

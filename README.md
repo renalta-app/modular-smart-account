@@ -43,10 +43,16 @@ To request deployment to an additional chain, please create a Github issue.
 
 ## Building
 
-This project uses Foundry.
+This project uses [Foundry](https://getfoundry.sh/introduction/overview).
 
 ```bash
+# Install all forge dependencies (also installs git submodules)
 forge install
+
+# Install pnpm dependencies for libs where needed
+cd lib/modulekit && pnpm install
+cd lib/smartsessions && pnpm install
+
 forge build
 ```
 

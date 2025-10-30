@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 import {LibERC7579} from "solady/accounts/LibERC7579.sol";
 import {LibCall} from "solady/utils/LibCall.sol";
@@ -83,13 +83,10 @@ library ERC7579ExecutionLib {
         }
     }
 
-    function _invokeSingleWithMode(
-        address target,
-        uint256 value,
-        bytes calldata data,
-        bytes1 callType,
-        bool tryExec
-    ) private returns (bytes memory) {
+    function _invokeSingleWithMode(address target, uint256 value, bytes calldata data, bytes1 callType, bool tryExec)
+        private
+        returns (bytes memory)
+    {
         _validateValueForCallType(callType, value);
 
         bool success;
@@ -129,10 +126,7 @@ library ERC7579ExecutionLib {
         }
     }
 
-    function _invokeDelegateWithMode(address target, bytes calldata data, bool tryExec)
-        private
-        returns (bytes memory)
-    {
+    function _invokeDelegateWithMode(address target, bytes calldata data, bool tryExec) private returns (bytes memory) {
         bool success = ExecutionLib.delegateCall(target, data, gasleft());
         bytes memory ret = ExecutionLib.getReturnData(0);
 

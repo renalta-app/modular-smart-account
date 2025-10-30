@@ -25,7 +25,7 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
 
     /// @notice Test factory deploys with correct entryPoint
     /// @dev Verifies the factory's account implementation references the correct entryPoint
-    function test_deployWithCorrectEntryPoint() public {
+    function test_deployWithCorrectEntryPoint() public view {
         ModularSmartAccount implementation = factory.ACCOUNT_IMPLEMENTATION();
         assertEq(address(implementation.entryPoint()), address(entryPoint), "EntryPoint mismatch");
     }
@@ -134,7 +134,7 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
     }
 
     /// @notice Test getInitCode returns valid initCode
-    function test_getInitCodeReturnsValidInitCode() public {
+    function test_getInitCodeReturnsValidInitCode() public view {
         uint256 salt = 111;
         bytes memory initCode = factory.getInitCode(owner, salt);
 
@@ -145,7 +145,7 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
     }
 
     /// @notice Test initCode factory address matches
-    function test_initCodeFactoryAddressMatches() public {
+    function test_initCodeFactoryAddressMatches() public view {
         uint256 salt = 222;
         bytes memory initCode = factory.getInitCode(owner, salt);
 
@@ -157,7 +157,7 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
     }
 
     /// @notice Fuzz test: getAddress is deterministic for same inputs
-    function testFuzz_getAddressIsDeterministic(address _owner, uint256 salt) public {
+    function testFuzz_getAddressIsDeterministic(address _owner, uint256 salt) public view {
         address addr1 = factory.getAddress(_owner, salt);
         address addr2 = factory.getAddress(_owner, salt);
 
@@ -165,7 +165,10 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
     }
 
     /// @notice Fuzz test: different salts always produce different addresses
-    function testFuzz_differentSaltsProduceDifferentAddresses(address _owner, uint256 salt1, uint256 salt2) public {
+    function testFuzz_differentSaltsProduceDifferentAddresses(address _owner, uint256 salt1, uint256 salt2)
+        public
+        view
+    {
         vm.assume(salt1 != salt2);
 
         address addr1 = factory.getAddress(_owner, salt1);
@@ -175,7 +178,10 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
     }
 
     /// @notice Fuzz test: different owners always produce different addresses
-    function testFuzz_differentOwnersProduceDifferentAddresses(address owner1, address owner2, uint256 salt) public {
+    function testFuzz_differentOwnersProduceDifferentAddresses(address owner1, address owner2, uint256 salt)
+        public
+        view
+    {
         vm.assume(owner1 != owner2);
 
         address addr1 = factory.getAddress(owner1, salt);

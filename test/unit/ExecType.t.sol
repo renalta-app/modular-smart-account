@@ -20,8 +20,7 @@ contract ExecTypeTest is ModularAccountTestBase {
             LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, LibERC7579.EXECTYPE_DEFAULT, bytes4(0), bytes22(0));
         bytes32 modeDefaultTry =
             LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
-        bytes32 modeInvalid =
-            LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, bytes1(0x02), bytes4(0), bytes22(0));
+        bytes32 modeInvalid = LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, bytes1(0x02), bytes4(0), bytes22(0));
 
         assertTrue(account.supportsExecutionMode(modeDefaultRevert), "Should support EXECTYPE_DEFAULT");
         assertTrue(account.supportsExecutionMode(modeDefaultTry), "Should support EXECTYPE_TRY");
@@ -44,8 +43,7 @@ contract ExecTypeTest is ModularAccountTestBase {
     function test_execTypeTry_doesNotRevertOnFailure() public {
         (ModularSmartAccount account,, address owner) = setupAccount();
 
-        bytes32 mode =
-            LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
+        bytes32 mode = LibERC7579.encodeMode(LibERC7579.CALLTYPE_SINGLE, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
 
         bytes memory executionCalldata = encodeExecution(address(counter), 0, abi.encodeWithSignature("countFail()"));
 
@@ -56,13 +54,13 @@ contract ExecTypeTest is ModularAccountTestBase {
     function test_execTypeTry_batchContinuesAfterFailure() public {
         (ModularSmartAccount account,, address owner) = setupAccount();
 
-        bytes32 mode =
-            LibERC7579.encodeMode(LibERC7579.CALLTYPE_BATCH, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
+        bytes32 mode = LibERC7579.encodeMode(LibERC7579.CALLTYPE_BATCH, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
 
         Execution[] memory batch = new Execution[](3);
-        batch[0] = Execution(address(counter), 0, abi.encodeWithSignature("increment()"));
-        batch[1] = Execution(address(counter), 0, abi.encodeWithSignature("decrementWithRevert()"));
-        batch[2] = Execution(address(counter), 0, abi.encodeWithSignature("increment()"));
+        batch[0] = Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("increment()")});
+        batch[1] =
+            Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("decrementWithRevert()")});
+        batch[2] = Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("increment()")});
 
         vm.prank(owner);
         account.execute(mode, encodeExecutionBatch(batch));
@@ -77,9 +75,10 @@ contract ExecTypeTest is ModularAccountTestBase {
             LibERC7579.encodeMode(LibERC7579.CALLTYPE_BATCH, LibERC7579.EXECTYPE_DEFAULT, bytes4(0), bytes22(0));
 
         Execution[] memory batch = new Execution[](3);
-        batch[0] = Execution(address(counter), 0, abi.encodeWithSignature("increment()"));
-        batch[1] = Execution(address(counter), 0, abi.encodeWithSignature("decrementWithRevert()"));
-        batch[2] = Execution(address(counter), 0, abi.encodeWithSignature("increment()"));
+        batch[0] = Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("increment()")});
+        batch[1] =
+            Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("decrementWithRevert()")});
+        batch[2] = Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("increment()")});
 
         vm.prank(owner);
         vm.expectRevert("decrement always fails");
@@ -87,5 +86,4 @@ contract ExecTypeTest is ModularAccountTestBase {
 
         assertEq(counter.counters(address(account)), 0, "Entire batch should revert atomically");
     }
-
 }

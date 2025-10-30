@@ -69,11 +69,15 @@ contract ECDSASessionKeyValidator is ISessionValidator {
     }
 
     /// @notice Validates an ERC-1271 signature using the stored session key
-    /// @param sender The address calling isValidSignature (unused)
     /// @param hash The hash to validate
     /// @param signature The signature bytes
     /// @return magicValue ERC-1271 magic value if valid, 0xffffffff otherwise
-    function isValidSignatureWithSender(address sender, bytes32 hash, bytes calldata signature)
+    function isValidSignatureWithSender(
+        address,
+        /* sender */
+        bytes32 hash,
+        bytes calldata signature
+    )
         external
         view
         returns (bytes4 magicValue)

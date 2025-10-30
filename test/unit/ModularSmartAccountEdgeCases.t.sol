@@ -214,7 +214,7 @@ contract ModularSmartAccountEdgeCasesTest is ModularAccountTestBase {
         bytes memory execData = encodeExecution(address(counter), 0, callData);
 
         vm.prank(attacker);
-        vm.expectRevert(ModularSmartAccount.NotAuthorizedForExecute.selector);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
         account.execute(MODE_DEFAULT, execData);
     }
 

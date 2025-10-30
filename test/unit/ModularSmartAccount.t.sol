@@ -273,7 +273,8 @@ contract ModularSmartAccountTest is ModularAccountTestBase {
         // casting to 'bytes4' is safe because hex"deadbeef" is exactly 4 bytes
         // forge-lint: disable-next-line(unsafe-typecast)
         vm.expectRevert(abi.encodeWithSignature("FallbackNotConfigured(bytes4)", bytes4(hex"deadbeef")));
-        (bool _success,) = address(account).call(hex"deadbeef");
+        (bool success,) = address(account).call(hex"deadbeef");
+        assertFalse(success, "Call should revert");
     }
 
     function test_delegatesFallbackCallsToInstalledHandler() public {
@@ -895,7 +896,7 @@ contract ModularSmartAccountTest is ModularAccountTestBase {
     // ============================================
 
     function test_executeUserOpCallsExecuteViaDelegatecall() public {
-        (ModularSmartAccount account,, address owner) = setupAccount();
+        (ModularSmartAccount account,,) = setupAccount();
         fund(address(account), 1 ether);
 
         bytes memory counterCallData = abi.encodeWithSignature("count()");

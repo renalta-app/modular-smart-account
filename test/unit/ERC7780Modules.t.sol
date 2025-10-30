@@ -2,7 +2,6 @@
 pragma solidity ^0.8.30;
 
 import {ModularAccountTestBase} from "../helpers/TestBase.sol";
-import {UserOpHelpers} from "../helpers/UserOpHelpers.sol";
 import {ModularSmartAccount} from "../../contracts/accounts/ModularSmartAccount.sol";
 import {ModularSmartAccountFactory} from "../../contracts/accounts/ModularSmartAccountFactory.sol";
 import {IEntryPoint} from "@openzeppelin/contracts/interfaces/draft-IERC4337.sol";
@@ -165,7 +164,7 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
     // Stateless Validator Tests
     // -------------------------------------------------------------------------
 
-    function test_StatelessValidator_ValidateSignatureWithData_Valid() public {
+    function test_StatelessValidator_ValidateSignatureWithData_Valid() public view {
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(authorizedSignerKey, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
@@ -175,7 +174,7 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
         assertTrue(result, "Signature should be valid");
     }
 
-    function test_StatelessValidator_ValidateSignatureWithData_Invalid() public {
+    function test_StatelessValidator_ValidateSignatureWithData_Invalid() public view {
         bytes32 hash = keccak256("test message");
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerKey, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
@@ -185,7 +184,7 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
         assertFalse(result, "Signature should be invalid");
     }
 
-    function test_StatelessValidator_IsModuleType() public {
+    function test_StatelessValidator_IsModuleType() public view {
         assertTrue(statelessValidator.isModuleType(MODULE_TYPE_STATELESS_VALIDATOR));
         assertFalse(statelessValidator.isModuleType(MODULE_TYPE_POLICY));
         assertFalse(statelessValidator.isModuleType(MODULE_TYPE_SIGNER));
@@ -195,7 +194,7 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
     // Multi-Type Module Tests
     // -------------------------------------------------------------------------
 
-    function test_MultiTypeModule_IsMultipleTypes() public {
+    function test_MultiTypeModule_IsMultipleTypes() public view {
         assertTrue(multiTypeModule.isModuleType(MODULE_TYPE_POLICY));
         assertTrue(multiTypeModule.isModuleType(MODULE_TYPE_SIGNER));
         assertFalse(multiTypeModule.isModuleType(MODULE_TYPE_STATELESS_VALIDATOR));
@@ -221,7 +220,7 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
     // Account Integration Tests
     // -------------------------------------------------------------------------
 
-    function test_Account_SupportsERC7780ModuleTypes() public {
+    function test_Account_SupportsERC7780ModuleTypes() public view {
         assertTrue(account.supportsModule(MODULE_TYPE_POLICY));
         assertTrue(account.supportsModule(MODULE_TYPE_SIGNER));
         assertTrue(account.supportsModule(MODULE_TYPE_STATELESS_VALIDATOR));

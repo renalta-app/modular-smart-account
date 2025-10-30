@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -33,7 +33,7 @@ contract ModularSmartAccountFactory {
     /// @param owner The owner address for the new account
     /// @param salt CREATE2 salt for deterministic deployment
     /// @return ret The ModularSmartAccount instance (whether existing or newly created)
-    function createAccount(address owner, uint256 salt) public returns (ModularSmartAccount ret) {
+    function createAccount(address owner, uint256 salt) external returns (ModularSmartAccount ret) {
         address addr = getAddress(owner, salt);
         uint256 codeSize = addr.code.length;
         if (codeSize > 0) {

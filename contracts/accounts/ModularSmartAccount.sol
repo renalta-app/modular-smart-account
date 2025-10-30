@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
@@ -38,7 +38,8 @@ import {MODULE_TYPE_STATELESS_VALIDATOR} from "../interfaces/IERC7780.sol";
 /// @notice ERC-4337 / EIP-7702 compatible account with ERC-7579 module lifecycle support
 /// @dev Dual-mode operation:
 ///      - Normal mode: Full ERC-7579 modular account with validator/executor/hook/fallback modules
-///      - EIP-7702 delegate mode: When set as EOA delegate, uses EOA signature validation
+///      - EIP-7702 delegate mode: When set as EOA delegate, uses EOA (address(this)) for signature
+///        validation fallback and direct execution authorization
 ///      Supports all ERC-7579 module types and execution modes (single, batch, delegatecall, staticcall)
 contract ModularSmartAccount is
     BaseAccount,
@@ -68,10 +69,6 @@ contract ModularSmartAccount is
     /// @notice Thrown when the attestation threshold is invalid
     error InvalidThreshold();
 
-    // TODO: difference btween this and Unauthorized()?
-    /// @notice Thrown when execution is not authorized
-    error NotAuthorizedForExecute();
-
     /// @notice Emitted when the module registry is configured
     /// @param registry The address of the module registry
     event ModuleRegistryConfigured(address indexed registry);
@@ -97,10 +94,15 @@ contract ModularSmartAccount is
     ///      Required for functions callable via UserOperations, since msg.sender
     ///      will be the EntryPoint during UserOp execution, not the owner
     modifier onlyOwnerOrEntryPoint() {
+        _onlyOwnerOrEntryPoint();
+        _;
+    }
+
+    /// @dev Internal function to reduce contract size by wrapping modifier logic
+    function _onlyOwnerOrEntryPoint() internal view {
         if (msg.sender != owner() && msg.sender != address(entryPoint())) {
             revert Unauthorized();
         }
-        _;
     }
 
     /// @notice Allows the account to receive ETH
@@ -129,12 +131,12 @@ contract ModularSmartAccount is
     /// @notice Withdraw value from the account's deposit
     /// @param withdrawAddress Target to send to
     /// @param amount Amount to withdraw
-    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) public onlyOwnerOrEntryPoint {
+    function withdrawDepositTo(address payable withdrawAddress, uint256 amount) external onlyOwnerOrEntryPoint {
         entryPoint().withdrawTo(withdrawAddress, amount);
     }
 
-    /// @dev Authorization check for UUPS upgrades
-    /// @param newImplementation The address of the new implementation (unused)
+    /// @dev Authorization check for UUPS upgrades, restrict to owner
+    /// @param newImplementation The address of the new implementation
     function _authorizeUpgrade(address newImplementation) internal view override onlyOwner {}
 
     // ------------------------------------------------------------------------
@@ -316,12 +318,12 @@ contract ModularSmartAccount is
         IEntryPoint ep = entryPoint();
         if (EIP7702Utils.fetchDelegate(address(this)) != address(0)) {
             if (msg.sender != address(this) && msg.sender != address(ep)) {
-                revert NotAuthorizedForExecute();
+                revert Unauthorized();
             }
             return;
         }
         if (msg.sender != address(ep) && msg.sender != owner()) {
-            revert NotAuthorizedForExecute();
+            revert Unauthorized();
         }
     }
 
@@ -332,8 +334,13 @@ contract ModularSmartAccount is
     ///      This enables modules (especially hooks and validators) to access the full
     ///      UserOperation context when needed for advanced validation/tracking.
     /// @param userOp The PackedUserOperation struct (see ERC-4337 v0.7+)
-    /// @param _userOpHash The hash of the PackedUserOperation struct (unused but required by spec)
-    function executeUserOp(PackedUserOperation calldata userOp, bytes32 _userOpHash) external payable {
+    function executeUserOp(
+        PackedUserOperation calldata userOp,
+        bytes32 /* _userOpHash */
+    )
+        external
+        payable
+    {
         _requireFromEntryPoint();
 
         // Execute userOp.callData[4:] via delegatecall per ERC-7579 recommendation

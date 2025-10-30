@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.30;
+pragma solidity 0.8.30;
 
 /// @title IERC7484Registry
 /// @notice Interface for ERC-7484 Module Registry

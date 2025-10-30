@@ -26,7 +26,6 @@ contract ModularSmartAccountSecurityTest is ModularAccountTestBase {
     TestValidatorModule public validator;
 
     error Unauthorized();
-    error NotAuthorizedForExecute();
 
     function setUp() public {
         chainId = block.chainid;

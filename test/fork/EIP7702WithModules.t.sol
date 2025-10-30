@@ -59,7 +59,7 @@ contract EIP7702WithModulesTest is ForkHelpers {
     /// @notice TEST: Validator module can authenticate UserOps in EIP-7702 mode
     /// @dev This test proves that validator modules work for delegated EOAs
     function test_eip7702ValidatorModuleAuthenticatesUserOp() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));
@@ -92,7 +92,7 @@ contract EIP7702WithModulesTest is ForkHelpers {
     /// @notice TEST: Session key validator works in EIP-7702 mode
     /// @dev This demonstrates smart sessions for delegated EOAs
     function test_eip7702SessionKeyValidatorWorks() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         (address sessionKey, uint256 sessionKeyPriv) = makeAddrAndKey("sessionKey");
         fund(eoa, TEN_ETH);
 
@@ -195,7 +195,7 @@ contract EIP7702WithModulesTest is ForkHelpers {
     /// @notice TEST: Validator modules work for ERC-1271 signatures in EIP-7702 mode
     /// @dev This tests the isValidSignature flow with modules
     function test_eip7702ValidatorModuleForERC1271() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         (address sessionKey, uint256 sessionKeyPriv) = makeAddrAndKey("sessionKey");
         fund(eoa, TEN_ETH);
 
@@ -256,7 +256,7 @@ contract EIP7702WithModulesTest is ForkHelpers {
     /// @notice TEST: Modules are checked before EOA fallback
     /// @dev This documents the authentication priority: modules first, EOA last
     function test_eip7702ModulePriorityOverEOA() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));

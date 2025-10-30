@@ -126,7 +126,7 @@ contract OwnerTransferTest is ModularAccountTestBase {
         bytes memory execData = encodeExecution(address(counter), 0, callData);
 
         vm.prank(oldOwner);
-        vm.expectRevert(ModularSmartAccount.NotAuthorizedForExecute.selector);
+        vm.expectRevert(abi.encodeWithSignature("Unauthorized()"));
         account.execute(MODE_DEFAULT, execData);
 
         assertEq(counter.counters(address(account)), 0);

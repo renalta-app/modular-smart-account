@@ -24,6 +24,7 @@ library EIP7739Helpers {
     /// @return The EIP-7739 wrapped signature (just the raw signature for PersonalSign flow)
     function signPersonalSign(Vm vm, uint256 signerKey, bytes32 messageHash, bytes32 accountDomainSeparator)
         internal
+        pure
         returns (bytes memory)
     {
         // Step 1: Create the PersonalSign struct hash

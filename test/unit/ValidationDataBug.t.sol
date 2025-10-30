@@ -41,7 +41,7 @@ contract ValidationDataBugTest is ModularAccountTestBase {
     /// while ensuring the signature is cryptographically valid (bit-0=0).
     /// This test validates that time-bounded signatures ARE accepted when valid.
     function test_acceptsTimeBoundedValidSignature() public {
-        (ModularSmartAccount account, uint256 ownerKey, address owner) = setupAccount();
+        (ModularSmartAccount account,, address owner) = setupAccount();
         (address moduleSigner, uint256 moduleSignerKey) = createAccountOwner();
         TimeBoundedValidatorModule validator = new TimeBoundedValidatorModule();
 
@@ -79,7 +79,7 @@ contract ValidationDataBugTest is ModularAccountTestBase {
     /// The EntryPoint is responsible for checking if the time bounds are satisfied.
     /// This test verifies the account correctly returns validation data even when timestamp is expired.
     function test_returnsValidCryptoSignatureWithExpiredTimeBounds() public {
-        (ModularSmartAccount account, uint256 ownerKey, address owner) = setupAccount();
+        (ModularSmartAccount account,, address owner) = setupAccount();
         (address moduleSigner, uint256 moduleSignerKey) = createAccountOwner();
         TimeBoundedValidatorModule validator = new TimeBoundedValidatorModule();
 
@@ -107,7 +107,7 @@ contract ValidationDataBugTest is ModularAccountTestBase {
         assertEq(validation & 1, 0, "Signature is cryptographically valid (bit-0 = 0)");
 
         // Verify time bounds are expired (EntryPoint would reject this)
-        (address aggregator, uint48 returnedAfter, uint48 returnedUntil) = ERC4337Utils.parseValidationData(validation);
+        (,, uint48 returnedUntil) = ERC4337Utils.parseValidationData(validation);
         assertTrue(block.timestamp > returnedUntil, "Current time should be after validUntil");
     }
 
@@ -115,8 +115,8 @@ contract ValidationDataBugTest is ModularAccountTestBase {
     /// Verifies that when a time-bounded validator receives an invalid signature,
     /// it returns validation data with bit-0=1 (invalid), even if time bounds are present.
     function test_correctlyIdentifiesInvalidSignatureWithTimeBounds() public {
-        (ModularSmartAccount account, uint256 ownerKey, address owner) = setupAccount();
-        (address moduleSigner, uint256 moduleSignerKey) = createAccountOwner();
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        (address moduleSigner,) = createAccountOwner();
         (, uint256 wrongKey) = createAccountOwner(); // Wrong signer
         TimeBoundedValidatorModule validator = new TimeBoundedValidatorModule();
 

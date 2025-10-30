@@ -59,7 +59,7 @@ contract EIP7702WithSmartSessionsTest is SmartSessionTestBase {
     /// @notice TEST: SmartSessions can be installed on EIP-7702 delegated account
     /// @dev First step - verify module installation works
     function test_eip7702_installSmartSessions() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));
@@ -98,7 +98,7 @@ contract EIP7702WithSmartSessionsTest is SmartSessionTestBase {
     /// @notice TEST: Session key can execute transactions on EIP-7702 delegated account
     /// @dev This is the core functionality test - session keys work in 7702 mode
     function test_eip7702_sessionKeyExecutesTransaction() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));
@@ -141,7 +141,7 @@ contract EIP7702WithSmartSessionsTest is SmartSessionTestBase {
     /// @notice TEST: Session key can call arbitrary contracts on EIP-7702 account
     /// @dev Verifies more complex interactions work with session keys
     function test_eip7702_sessionKeyCallsContract() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));
@@ -187,7 +187,7 @@ contract EIP7702WithSmartSessionsTest is SmartSessionTestBase {
     /// @notice TEST: Time-based policies work in EIP-7702 mode
     /// @dev Demonstrates that policy enforcement works for delegated EOAs
     function test_eip7702_timeBasedPolicyEnforcement() public {
-        (address eoa, uint256 eoaKey) = makeAddrAndKey("eoa");
+        (address eoa,) = makeAddrAndKey("eoa");
         fund(eoa, TEN_ETH);
 
         setupEip7702Delegation(eoa, address(implementation));
