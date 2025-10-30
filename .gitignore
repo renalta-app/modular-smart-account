@@ -1,0 +1,17 @@
+# IDE
+/.idea/
+/.DS_Store
+.DS_Store
+.claude
+
+# Environment
+.env
+
+# Foundry files
+/broadcast/
+/cache/
+/forge-cache/
+/out/
+
+# Build artifacts
+/artifacts/

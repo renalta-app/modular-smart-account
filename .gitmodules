@@ -1,0 +1,15 @@
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/solady"]
+	path = lib/solady
+	url = https://github.com/vectorized/solady
+[submodule "lib/modulekit"]
+	path = lib/modulekit
+	url = https://github.com/rhinestonewtf/modulekit
+[submodule "lib/smartsessions"]
+	path = lib/smartsessions
+	url = https://github.com/erc7579/smartsessions
