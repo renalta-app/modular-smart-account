@@ -31,7 +31,7 @@ remappings = [
 ]
 
 # Fork testing - pin to specific block to reduce RPC calls
-fork_block_number = 37371355  # Base mainnet, 2025-01-26
+# fork_block_number = 37371355  # Base mainnet, 2025-01-26
 
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC_URL}"
@@ -39,19 +39,5 @@ sepolia = "${SEPOLIA_RPC_URL}"
 base = "${BASE_RPC_URL}"
 
 [etherscan]
-base = { key = "${BASESCAN_API_KEY}" }
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
-
-# Test profiles for easy switching between test types
-# [profile.unit]
-# match_path = "test/unit/**/*.t.sol"
-
-# [profile.integration]
-# match_path = "test/integration/**/*.t.sol"
-
-# [profile.fork]
-# fork_url = "${BASE_RPC_URL}"
-# fork_block_number = 37371355
-# match_path = "test/fork/**/*.t.sol"
-
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+base = { key = "${BASESCAN_API_KEY}" }

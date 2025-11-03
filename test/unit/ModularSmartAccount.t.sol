@@ -274,7 +274,8 @@ contract ModularSmartAccountTest is ModularAccountTestBase {
         // forge-lint: disable-next-line(unsafe-typecast)
         vm.expectRevert(abi.encodeWithSignature("FallbackNotConfigured(bytes4)", bytes4(hex"deadbeef")));
         (bool success,) = address(account).call(hex"deadbeef");
-        assertFalse(success, "Call should revert");
+        // success is not checked because vm.expectRevert() handles the assertion
+        success; // silence unused variable warning
     }
 
     function test_delegatesFallbackCallsToInstalledHandler() public {
