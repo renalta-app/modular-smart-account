@@ -45,10 +45,48 @@ library SignatureValidationLib {
 
         uint256 policyResult = $.checkUserOpPolicy(bytes32(0), userOp);
         if (policyResult != 0) {
-            return policyResult;
+            return _intersectValidationData(validationData, policyResult);
         }
 
         return validationData;
+    }
+
+    /// @notice Intersects two validationData values by taking the most restrictive time bounds
+    /// @dev ValidationData format (ERC-4337):
+    ///      - bits 0-159: authorizer (0=valid, 1=invalid, otherwise=aggregator address)
+    ///      - bits 160-207: validUntil timestamp (48 bits)
+    ///      - bits 208-255: validAfter timestamp (48 bits)
+    /// @param validationData1 First validation data
+    /// @param validationData2 Second validation data
+    /// @return Intersected validation data with most restrictive time bounds
+    function _intersectValidationData(uint256 validationData1, uint256 validationData2)
+        private
+        pure
+        returns (uint256)
+    {
+        uint256 authorizer1 = validationData1 & ((1 << 160) - 1);
+        uint256 authorizer2 = validationData2 & ((1 << 160) - 1);
+
+        if ((authorizer1 & 1) != 0) return validationData1;
+        if ((authorizer2 & 1) != 0) return validationData2;
+
+        uint48 validUntil1 = uint48((validationData1 >> 160) & 0xFFFFFFFFFFFF);
+        uint48 validAfter1 = uint48(validationData1 >> 208);
+        uint48 validUntil2 = uint48((validationData2 >> 160) & 0xFFFFFFFFFFFF);
+        uint48 validAfter2 = uint48(validationData2 >> 208);
+
+        uint48 validAfter = validAfter1 > validAfter2 ? validAfter1 : validAfter2;
+        uint48 validUntil;
+
+        if (validUntil1 == 0) {
+            validUntil = validUntil2;
+        } else if (validUntil2 == 0) {
+            validUntil = validUntil1;
+        } else {
+            validUntil = validUntil1 < validUntil2 ? validUntil1 : validUntil2;
+        }
+
+        return uint256(validAfter) << 208 | uint256(validUntil) << 160;
     }
 
     /// @notice Validates a UserOperation signature
