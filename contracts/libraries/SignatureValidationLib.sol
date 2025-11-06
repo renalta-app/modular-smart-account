@@ -59,11 +59,7 @@ library SignatureValidationLib {
     /// @param validationData1 First validation data
     /// @param validationData2 Second validation data
     /// @return Intersected validation data with most restrictive time bounds
-    function _intersectValidationData(uint256 validationData1, uint256 validationData2)
-        private
-        pure
-        returns (uint256)
-    {
+    function _intersectValidationData(uint256 validationData1, uint256 validationData2) private pure returns (uint256) {
         uint256 authorizer1 = validationData1 & ((1 << 160) - 1);
         uint256 authorizer2 = validationData2 & ((1 << 160) - 1);
 
@@ -71,8 +67,12 @@ library SignatureValidationLib {
         if ((authorizer2 & 1) != 0) return validationData2;
 
         uint48 validUntil1 = uint48((validationData1 >> 160) & 0xFFFFFFFFFFFF);
-        uint48 validAfter1 = uint48(validationData1 >> 208);
         uint48 validUntil2 = uint48((validationData2 >> 160) & 0xFFFFFFFFFFFF);
+
+        // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData per spec
+        // forge-lint: disable-next-line(unsafe-typecast)
+        uint48 validAfter1 = uint48(validationData1 >> 208);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 validAfter2 = uint48(validationData2 >> 208);
 
         uint48 validAfter = validAfter1 > validAfter2 ? validAfter1 : validAfter2;
@@ -86,7 +86,7 @@ library SignatureValidationLib {
             validUntil = validUntil1 < validUntil2 ? validUntil1 : validUntil2;
         }
 
-        return uint256(validAfter) << 208 | uint256(validUntil) << 160;
+        return (uint256(validAfter) << 208) | (uint256(validUntil) << 160);
     }
 
     /// @notice Validates a UserOperation signature

@@ -7,8 +7,7 @@ import {PackedUserOperation} from "@openzeppelin/contracts/interfaces/draft-IERC
 import {ModularSmartAccount} from "../../contracts/accounts/ModularSmartAccount.sol";
 import {IEntryPoint} from "@openzeppelin/contracts/interfaces/draft-IERC4337.sol";
 import {IPolicy} from "../../contracts/interfaces/IERC7780.sol";
-import {IERC7579Validator, IERC7579Module} from "@openzeppelin/contracts/interfaces/draft-IERC7579.sol";
-import {IModule} from "modulekit/accounts/common/interfaces/IERC7579Module.sol";
+import {IERC7579Validator} from "@openzeppelin/contracts/interfaces/draft-IERC7579.sol";
 import {ECDSA} from "solady/utils/ECDSA.sol";
 import {MODULE_TYPE_POLICY} from "../../contracts/interfaces/IERC7780.sol";
 import {MODULE_TYPE_VALIDATOR} from "@openzeppelin/contracts/interfaces/draft-IERC7579.sol";
@@ -54,6 +53,8 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         vm.prank(address(entryPoint));
         uint256 validationData = account.validateUserOp(packed, userOpHash, 0);
 
+        // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
@@ -84,6 +85,8 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         vm.prank(address(entryPoint));
         uint256 validationData = account.validateUserOp(packed, userOpHash, 0);
 
+        // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
@@ -116,6 +119,8 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         uint256 validationData = account.validateUserOp(packed, userOpHash, 0);
 
         // Expected: Validator's time bounds should be preserved
+        // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
@@ -206,12 +211,7 @@ contract TimeBoundedValidator is IERC7579Validator {
         return validationData;
     }
 
-    function isValidSignatureWithSender(address, bytes32, bytes calldata)
-        external
-        pure
-        override
-        returns (bytes4)
-    {
+    function isValidSignatureWithSender(address, bytes32, bytes calldata) external pure override returns (bytes4) {
         return 0x1626ba7e; // ERC-1271 magic value
     }
 }
@@ -257,12 +257,7 @@ contract TimeBoundedPolicy is IPolicy {
         return validationData;
     }
 
-    function checkSignaturePolicy(bytes32, address, bytes32, bytes calldata)
-        external
-        pure
-        override
-        returns (uint256)
-    {
+    function checkSignaturePolicy(bytes32, address, bytes32, bytes calldata) external pure override returns (uint256) {
         return 0;
     }
 }
