@@ -7,11 +7,12 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 /// @notice Storage helpers for ERC-7579 module management
 /// @dev The layout keccak slot is intentionally namespaced so upgrades can reserve
 ///      additional fields without clashing with the existing SimpleAccount storage
+/// @custom:storage-location erc7201:smartaccount.module.storage.v1
 library ModuleStorage {
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    /// @dev keccak256("smartaccount.module.storage.v1") - 1 to reduce collision odds
-    bytes32 internal constant STORAGE_SLOT = 0x792bfdc81429d01b156d40de1fcf4ba545932ff806a401bb428d11fb94ab2eb6;
+    /// @dev ERC-7201 namespaced storage slot for "smartaccount.module.storage.v1"
+    bytes32 internal constant STORAGE_SLOT = 0xc7dc1b39760e1f0d2996da727d34b86d38c45f80dda4cda848f9c8eddaa8e400;
 
     /// @notice Thrown when attempting to install a module that is already installed
     /// @param moduleTypeId The type ID of the module
