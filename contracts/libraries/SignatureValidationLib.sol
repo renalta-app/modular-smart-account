@@ -39,10 +39,8 @@ library SignatureValidationLib {
     ) internal returns (uint256 validationData) {
         validationData = _validateUserOpSignature($, owner, userOp, userOpHash);
 
-        if ((validationData & 1) != 0) {
-            return validationData;
-        }
-
+        // Always check policies even if signature validation failed
+        // This ensures accurate gas estimation per ERC-4337 guidelines
         uint256 policyResult = $.checkUserOpPolicy(bytes32(0), userOp);
         if (policyResult != 0) {
             return _intersectValidationData(validationData, policyResult);
