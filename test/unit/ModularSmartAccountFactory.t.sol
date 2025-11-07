@@ -202,4 +202,13 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
 
         assertEq(addr1, addr2, "Address should be same on repeated calls");
     }
+
+    /// @notice Test createAccount rejects zero address owner
+    /// @dev Prevents deploying permanently ownerless accounts
+    function test_revertWhen_createAccountWithZeroAddressOwner() public {
+        uint256 salt = 0;
+
+        vm.expectRevert(ModularSmartAccountFactory.ZeroAddressOwner.selector);
+        factory.createAccount(address(0), salt);
+    }
 }
