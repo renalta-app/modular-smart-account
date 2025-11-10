@@ -372,9 +372,7 @@ contract AggregatorValidatorModule is IERC7579Validator {
         // Return validation data with aggregator address
         // If signature is valid, return aggregator; otherwise return SIG_VALIDATION_FAILED
         return ERC4337Utils.packValidationData(
-            sigValid ? cfg.aggregator : address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED)),
-            0,
-            0
+            sigValid ? cfg.aggregator : address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED)), 0, 0
         );
     }
 

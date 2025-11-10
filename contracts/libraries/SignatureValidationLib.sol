@@ -49,17 +49,25 @@ library SignatureValidationLib {
         return validationData;
     }
 
-    /// @notice Intersects two validationData values by taking the most restrictive time bounds
+    /// @notice Intersects two validationData values by combining aggregator and time bounds
     /// @dev ValidationData format (ERC-4337):
     ///      - bits 0-159: authorizer (0=valid, 1=invalid, otherwise=aggregator address)
     ///      - bits 160-207: validUntil timestamp (48 bits)
     ///      - bits 208-255: validAfter timestamp (48 bits)
-    /// @param validationData1 First validation data
-    /// @param validationData2 Second validation data
-    /// @return Intersected validation data with most restrictive time bounds
+    ///
+    ///      Intersection logic:
+    ///      - Aggregator: Preserved from validationData1 (signature result). Policies don't use aggregators.
+    ///      - validAfter: Maximum of both (most restrictive start time)
+    ///      - validUntil: Minimum of both (most restrictive end time), treating 0 as "no expiry"
+    ///
+    /// @param validationData1 First validation data (typically from signature validation)
+    /// @param validationData2 Second validation data (typically from policy validation)
+    /// @return Intersected validation data with aggregator from first and intersected time bounds from both
     function _intersectValidationData(uint256 validationData1, uint256 validationData2) private pure returns (uint256) {
-        (address aggregator1, uint48 validAfter1, uint48 validUntil1) = ERC4337Utils.parseValidationData(validationData1);
-        (address aggregator2, uint48 validAfter2, uint48 validUntil2) = ERC4337Utils.parseValidationData(validationData2);
+        (address aggregator1, uint48 validAfter1, uint48 validUntil1) =
+            ERC4337Utils.parseValidationData(validationData1);
+        (address aggregator2, uint48 validAfter2, uint48 validUntil2) =
+            ERC4337Utils.parseValidationData(validationData2);
 
         if (aggregator1 == address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) return validationData1;
         if (aggregator2 == address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) return validationData2;
@@ -75,7 +83,8 @@ library SignatureValidationLib {
             validUntil = validUntil1 < validUntil2 ? validUntil1 : validUntil2;
         }
 
-        return (uint256(validAfter) << 208) | (uint256(validUntil) << 160);
+        // Preserve aggregator from validationData1 (signature result)
+        return ERC4337Utils.packValidationData(aggregator1, validAfter, validUntil);
     }
 
     /// @notice Validates a UserOperation signature
