@@ -58,20 +58,11 @@ library SignatureValidationLib {
     /// @param validationData2 Second validation data
     /// @return Intersected validation data with most restrictive time bounds
     function _intersectValidationData(uint256 validationData1, uint256 validationData2) private pure returns (uint256) {
-        uint256 authorizer1 = validationData1 & ((1 << 160) - 1);
-        uint256 authorizer2 = validationData2 & ((1 << 160) - 1);
+        (address aggregator1, uint48 validAfter1, uint48 validUntil1) = ERC4337Utils.parseValidationData(validationData1);
+        (address aggregator2, uint48 validAfter2, uint48 validUntil2) = ERC4337Utils.parseValidationData(validationData2);
 
-        if ((authorizer1 & 1) != 0) return validationData1;
-        if ((authorizer2 & 1) != 0) return validationData2;
-
-        uint48 validUntil1 = uint48((validationData1 >> 160) & 0xFFFFFFFFFFFF);
-        uint48 validUntil2 = uint48((validationData2 >> 160) & 0xFFFFFFFFFFFF);
-
-        // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData per spec
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint48 validAfter1 = uint48(validationData1 >> 208);
-        // forge-lint: disable-next-line(unsafe-typecast)
-        uint48 validAfter2 = uint48(validationData2 >> 208);
+        if (aggregator1 == address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) return validationData1;
+        if (aggregator2 == address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) return validationData2;
 
         uint48 validAfter = validAfter1 > validAfter2 ? validAfter1 : validAfter2;
         uint48 validUntil;
@@ -105,7 +96,8 @@ library SignatureValidationLib {
 
         // Try signer modules first (bytes32(0) is the default signer ID)
         validationData = $.checkUserOpSignature(bytes32(0), userOp, userOpHash);
-        if ((validationData & 1) == 0) {
+        (address aggregator,,) = ERC4337Utils.parseValidationData(validationData);
+        if (aggregator != address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) {
             authenticated = true;
         }
 
@@ -117,8 +109,8 @@ library SignatureValidationLib {
             for (uint256 i = 0; i < count;) {
                 address module = validators.at(i);
                 uint256 result = IERC7579Validator(module).validateUserOp(userOp, userOpHash);
-                // Check bit-0 of validationData: 0 = valid, 1 = invalid
-                if ((result & 1) == 0) {
+                (address resultAggregator,,) = ERC4337Utils.parseValidationData(result);
+                if (resultAggregator != address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED))) {
                     validationData = result;
                     authenticated = true;
                     break;
