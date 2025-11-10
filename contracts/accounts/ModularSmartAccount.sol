@@ -377,17 +377,10 @@ contract ModularSmartAccount is
     }
 
     /// @notice Executes a transaction on behalf of the account
-    /// @dev User-facing execute with no return data per ERC-7579 spec.
-    ///      Uses _dispatchExecuteNoReturn() for gas optimization since return data
-    ///      is not needed for EntryPoint or owner-initiated calls.
-    ///      Supports all execution modes: single call, batch, delegatecall, and staticcall.
-    ///      Runs installed hooks (if any) before and after execution.
-    ///      Authorization:
-    ///      - Normal mode: Only callable by account owner or EntryPoint
-    ///      - EIP-7702 mode: Only callable by the EOA (address(this)) or EntryPoint
-    /// @param mode The encoded execution mode (callType in upper byte). See LibERC7579 for encoding
-    /// @param executionCalldata The encoded execution data (target, value, calldata).
-    ///                          Format depends on mode (single vs batch)
+    /// @param mode The encoded execution mode (callType in upper byte)
+    /// @param executionCalldata The encoded execution data
+    /// @dev Gas-optimized - doesn't collect return data. With EXECTYPE_TRY, silently skips
+    ///      failed executions without running postCheck hooks.
     function execute(bytes32 mode, bytes calldata executionCalldata) external payable override nonReentrant {
         _requireForExecute();
 
@@ -398,21 +391,19 @@ contract ModularSmartAccount is
         // Run hooks with full msg.data per ERC-7579 spec
         (address[] memory hooks, bytes[] memory contexts) = _runHooksPre(msg.sender, msg.value, msg.data);
 
-        _dispatchExecuteNoReturn(mode, executionCalldata);
+        bool success = _dispatchExecuteNoReturn(mode, executionCalldata);
 
-        _runHooksPost(hooks, contexts);
+        // Only run postCheck if execution succeeded
+        if (success) {
+            _runHooksPost(hooks, contexts);
+        }
     }
 
     /// @notice Executes a transaction on behalf of the account from an executor module
-    /// @dev Module-facing execute that returns call data per ERC-7579 spec.
-    ///      This enables executor modules to make decisions based on return values.
-    ///      Only callable by installed executor modules. Uses _dispatchExecute()
-    ///      which collects and returns execution results.
-    ///      Supports all execution modes and runs hooks like execute()
     /// @param mode The encoded execution mode (callType in upper byte)
     /// @param executionCalldata The encoded execution data
-    /// @return returnData Array of return data from each executed call.
-    ///                    Single calls return array of length 1, batch calls return multiple
+    /// @return returnData Array of return data. Empty array if EXECTYPE_TRY execution fails.
+    ///                    Single calls return array of length 1, batch calls return multiple.
     function executeFromExecutor(bytes32 mode, bytes calldata executionCalldata)
         external
         payable
@@ -431,26 +422,36 @@ contract ModularSmartAccount is
         // Run hooks with full msg.data per ERC-7579 spec
         (address[] memory hooks, bytes[] memory contexts) = _runHooksPre(msg.sender, msg.value, msg.data);
 
-        bytes[] memory results = _dispatchExecute(mode, executionCalldata);
+        (bool success, bytes[] memory results) = _dispatchExecute(mode, executionCalldata);
 
-        _runHooksPost(hooks, contexts);
+        // Only run postCheck if execution succeeded
+        if (success) {
+            _runHooksPost(hooks, contexts);
+            return results;
+        }
 
-        return results;
+        // Return empty array on failure - executor modules can check returnData.length == 0
+        return new bytes[](0);
     }
 
     /// @dev Dispatches execution with return data collection
     /// @param mode The execution mode
     /// @param executionCalldata The execution data
-    /// @return Array of return data from executed calls
-    function _dispatchExecute(bytes32 mode, bytes calldata executionCalldata) internal returns (bytes[] memory) {
+    /// @return success True if all executions succeeded
+    /// @return returnData Array of return data from executed calls
+    function _dispatchExecute(bytes32 mode, bytes calldata executionCalldata)
+        internal
+        returns (bool success, bytes[] memory returnData)
+    {
         return ERC7579ExecutionLib.dispatchExecute(mode, executionCalldata);
     }
 
     /// @dev Dispatches execution without return data (gas optimized)
     /// @param mode The execution mode
     /// @param executionCalldata The execution data
-    function _dispatchExecuteNoReturn(bytes32 mode, bytes calldata executionCalldata) internal {
-        ERC7579ExecutionLib.dispatchExecuteNoReturn(mode, executionCalldata);
+    /// @return success True if all executions succeeded
+    function _dispatchExecuteNoReturn(bytes32 mode, bytes calldata executionCalldata) internal returns (bool success) {
+        return ERC7579ExecutionLib.dispatchExecuteNoReturn(mode, executionCalldata);
     }
 
     /// @dev Runs preCheck on all installed hooks before execution

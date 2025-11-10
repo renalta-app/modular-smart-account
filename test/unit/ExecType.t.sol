@@ -51,7 +51,7 @@ contract ExecTypeTest is ModularAccountTestBase {
         account.execute(mode, executionCalldata);
     }
 
-    function test_execTypeTry_batchContinuesAfterFailure() public {
+    function test_execTypeTry_batchNotAllowed() public {
         (ModularSmartAccount account,, address owner) = setupAccount();
 
         bytes32 mode = LibERC7579.encodeMode(LibERC7579.CALLTYPE_BATCH, LibERC7579.EXECTYPE_TRY, bytes4(0), bytes22(0));
@@ -63,9 +63,8 @@ contract ExecTypeTest is ModularAccountTestBase {
         batch[2] = Execution({target: address(counter), value: 0, data: abi.encodeWithSignature("increment()")});
 
         vm.prank(owner);
+        vm.expectRevert();
         account.execute(mode, encodeExecutionBatch(batch));
-
-        assertEq(counter.counters(address(account)), 2, "Should have executed first and third calls");
     }
 
     function test_execTypeDefault_batchRevertsOnFirstFailure() public {
