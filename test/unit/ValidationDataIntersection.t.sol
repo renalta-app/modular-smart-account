@@ -155,11 +155,70 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         // Should fail with authorizer = 1 (failure)
         assertEq(validationData & 1, 1, "Should fail when policy rejects");
     }
+
+    /// @notice Test ERC-4337 compliance: policy checks must execute even with invalid signature
+    /// @dev Ensures accurate gas estimation per ERC-4337 spec (no early return on SIG_VALIDATION_FAILED)
+    function test_erc4337Compliance_PolicyExecutesWithInvalidSignature() public {
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        (address signer, uint256 signerKey) = createAccountOwner();
+
+        bytes memory validatorInitData = abi.encode(signer, uint48(0), uint48(0));
+        vm.prank(owner);
+        account.installModule(MODULE_TYPE_VALIDATOR, address(validator), validatorInitData);
+
+        CallCountingPolicy countingPolicy = new CallCountingPolicy();
+        vm.prank(owner);
+        account.installModule(MODULE_TYPE_POLICY, address(countingPolicy), "");
+
+        // Invalid signature (wrong signer)
+        (, uint256 wrongKey) = createAccountOwner();
+        UserOpHelpers.UserOperation memory userOp = UserOpHelpers.createUserOp(address(account), 0);
+        userOp = UserOpHelpers.signUserOp(vm, userOp, wrongKey, address(entryPoint), chainId);
+
+        PackedUserOperation memory packed = UserOpHelpers.packUserOp(userOp);
+        bytes32 userOpHash = UserOpHelpers.getUserOpHash(userOp, address(entryPoint), chainId);
+
+        vm.prank(address(entryPoint));
+        uint256 validationData = account.validateUserOp(packed, userOpHash, 0);
+
+        assertEq(validationData & 1, 1, "Signature validation should fail");
+        assertEq(countingPolicy.callCount(address(account)), 1, "Policy must execute despite invalid signature");
+    }
 }
 
 // ============================================
 // MOCK MODULES FOR TESTING
 // ============================================
+
+/// @notice Tracks policy execution count for gas estimation testing
+contract CallCountingPolicy is IPolicy {
+    mapping(address => uint256) public callCount;
+
+    function onInstall(bytes calldata) external override {}
+    function onUninstall(bytes calldata) external override {}
+
+    function isModuleType(uint256 moduleTypeId) external pure override returns (bool) {
+        return moduleTypeId == MODULE_TYPE_POLICY;
+    }
+
+    function isInitialized(address) external pure returns (bool) {
+        return true;
+    }
+
+    function checkUserOpPolicy(bytes32, PackedUserOperation calldata userOp)
+        external
+        payable
+        override
+        returns (uint256)
+    {
+        callCount[userOp.sender]++;
+        return 0;
+    }
+
+    function checkSignaturePolicy(bytes32, address, bytes32, bytes calldata) external pure override returns (uint256) {
+        return 0;
+    }
+}
 
 /// @notice Validator that returns time-bounded validation data
 contract TimeBoundedValidator is IERC7579Validator {
