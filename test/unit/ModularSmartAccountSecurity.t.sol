@@ -272,6 +272,84 @@ contract ModularSmartAccountSecurityTest is ModularAccountTestBase {
     }
 
     // ============================================
+    // EXECUTION MODE VALIDATION TESTS
+    // ============================================
+
+    function test_revertsOnInvalidExecutionMode_execute() public {
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        TestCounter counter = new TestCounter();
+
+        bytes memory callData = abi.encodeWithSignature("count()");
+        bytes memory execData = encodeExecution(address(counter), 0, callData);
+
+        // Invalid mode: callType 0x99 is not supported
+        bytes32 invalidMode = bytes32(uint256(0x99) << 248);
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSignature("UnsupportedExecutionMode(bytes32)", invalidMode));
+        account.execute(invalidMode, execData);
+    }
+
+    function test_revertsOnInvalidExecutionMode_executeFromExecutor() public {
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        TestCounter counter = new TestCounter();
+
+        // Install test executor module
+        address testExecutorModule = createAddress();
+        bytes memory mockExecutorCode =
+            abi.encodePacked(bytes1(0x60), bytes1(0x00), bytes1(0x60), bytes1(0x00), bytes1(0xf3));
+        vm.etch(testExecutorModule, mockExecutorCode);
+
+        bytes memory initData = "";
+        vm.prank(owner);
+        account.installModule(MODULE_TYPE_EXECUTOR, testExecutorModule, initData);
+
+        bytes memory callData = abi.encodeWithSignature("count()");
+        bytes memory execData = encodeExecution(address(counter), 0, callData);
+
+        // Invalid mode: callType 0x88 is not supported
+        bytes32 invalidMode = bytes32(uint256(0x88) << 248);
+
+        vm.prank(testExecutorModule);
+        vm.expectRevert(abi.encodeWithSignature("UnsupportedExecutionMode(bytes32)", invalidMode));
+        account.executeFromExecutor(invalidMode, execData);
+    }
+
+    function testFuzz_revertsOnArbitraryInvalidExecutionMode(uint8 callType) public {
+        // Skip valid call types
+        vm.assume(callType != 0x00); // SINGLE
+        vm.assume(callType != 0x01); // BATCH
+        vm.assume(callType != 0xFE); // STATICCALL
+        vm.assume(callType != 0xFF); // DELEGATECALL
+
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        TestCounter counter = new TestCounter();
+
+        bytes memory callData = abi.encodeWithSignature("count()");
+        bytes memory execData = encodeExecution(address(counter), 0, callData);
+
+        bytes32 invalidMode = bytes32(uint256(callType) << 248);
+
+        vm.prank(owner);
+        vm.expectRevert(abi.encodeWithSignature("UnsupportedExecutionMode(bytes32)", invalidMode));
+        account.execute(invalidMode, execData);
+    }
+
+    function test_acceptsValidExecutionModes() public {
+        (ModularSmartAccount account,, address owner) = setupAccount();
+        TestCounter counter = new TestCounter();
+
+        bytes memory callData = abi.encodeWithSignature("count()");
+        bytes memory execData = encodeExecution(address(counter), 0, callData);
+
+        // Test SINGLE mode (0x00) - should execute successfully
+        bytes32 singleMode = bytes32(uint256(0x00) << 248);
+        vm.prank(owner);
+        account.execute(singleMode, execData);
+        assertEq(counter.counters(address(account)), 1, "SINGLE mode should work");
+    }
+
+    // ============================================
     // FUZZ TESTS
     // ============================================
 

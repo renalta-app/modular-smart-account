@@ -72,6 +72,10 @@ contract ModularSmartAccount is
     /// @notice Thrown when UserOperation callData is missing / too short
     error InvalidUserOpCallData();
 
+    /// @notice Thrown when an unsupported execution mode is requested
+    /// @param mode The unsupported execution mode
+    error UnsupportedExecutionMode(bytes32 mode);
+
     /// @notice Emitted when the module registry is configured
     /// @param registry The address of the module registry
     event ModuleRegistryConfigured(address indexed registry);
@@ -387,6 +391,10 @@ contract ModularSmartAccount is
     function execute(bytes32 mode, bytes calldata executionCalldata) external payable override nonReentrant {
         _requireForExecute();
 
+        if (!this.supportsExecutionMode(mode)) {
+            revert UnsupportedExecutionMode(mode);
+        }
+
         // Run hooks with full msg.data per ERC-7579 spec
         (address[] memory hooks, bytes[] memory contexts) = _runHooksPre(msg.sender, msg.value, msg.data);
 
@@ -414,6 +422,10 @@ contract ModularSmartAccount is
         ModuleStorage.Layout storage $ = ModuleStorage.layout();
         if (!$.isModuleInstalled(MODULE_TYPE_EXECUTOR, msg.sender)) {
             revert ModuleStorage.ModuleNotInstalled(MODULE_TYPE_EXECUTOR, msg.sender);
+        }
+
+        if (!this.supportsExecutionMode(mode)) {
+            revert UnsupportedExecutionMode(mode);
         }
 
         // Run hooks with full msg.data per ERC-7579 spec
