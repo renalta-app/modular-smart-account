@@ -330,6 +330,20 @@ contract ModularSmartAccount is
         }
     }
 
+    /// @notice Disabled for security - use execute(bytes32,bytes) instead
+    /// @dev This inherited function from BaseAccount bypasses ERC-7579 hooks.
+    ///      All execution must go through execute(bytes32,bytes) to ensure hooks are invoked.
+    function execute(address, uint256, bytes calldata) external override {
+        revert("ModularSmartAccount: use execute(bytes32,bytes)");
+    }
+
+    /// @notice Disabled for security - use execute(bytes32,bytes) in batch mode instead
+    /// @dev This inherited function from BaseAccount bypasses ERC-7579 hooks.
+    ///      Use execute(bytes32,bytes) with CALLTYPE_BATCH mode to ensure hooks are invoked.
+    function executeBatch(Call[] calldata) external override {
+        revert("ModularSmartAccount: use execute(bytes32,bytes) in batch mode");
+    }
+
     /// @notice Executes a UserOperation on behalf of the account
     /// @dev ERC-4337 executeUserOp according to ERC-4337 v0.7 and ERC-7579.
     ///      This function is intended to be called by ERC-4337 EntryPoint.sol.
