@@ -69,6 +69,9 @@ contract ModularSmartAccount is
     /// @notice Thrown when the attestation threshold is invalid
     error InvalidThreshold();
 
+    /// @notice Thrown when UserOperation callData is missing / too short
+    error InvalidUserOpCallData();
+
     /// @notice Emitted when the module registry is configured
     /// @param registry The address of the module registry
     event ModuleRegistryConfigured(address indexed registry);
@@ -342,6 +345,10 @@ contract ModularSmartAccount is
         payable
     {
         _requireFromEntryPoint();
+
+        if (userOp.callData.length < 4) {
+            revert InvalidUserOpCallData();
+        }
 
         // Execute userOp.callData[4:] via delegatecall per ERC-7579 recommendation
         // This preserves the original msg.sender to the account
