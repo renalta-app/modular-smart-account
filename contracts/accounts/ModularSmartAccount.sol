@@ -379,8 +379,7 @@ contract ModularSmartAccount is
     /// @notice Executes a transaction on behalf of the account
     /// @param mode The encoded execution mode (callType in upper byte)
     /// @param executionCalldata The encoded execution data
-    /// @dev Gas-optimized - doesn't collect return data. With EXECTYPE_TRY, silently skips
-    ///      failed executions without running postCheck hooks.
+    /// @dev Gas-optimized - doesn't collect return data
     function execute(bytes32 mode, bytes calldata executionCalldata) external payable override nonReentrant {
         _requireForExecute();
 
@@ -391,12 +390,10 @@ contract ModularSmartAccount is
         // Run hooks with full msg.data per ERC-7579 spec
         (address[] memory hooks, bytes[] memory contexts) = _runHooksPre(msg.sender, msg.value, msg.data);
 
-        bool success = _dispatchExecuteNoReturn(mode, executionCalldata);
+        _dispatchExecuteNoReturn(mode, executionCalldata);
 
-        // Only run postCheck if execution succeeded
-        if (success) {
-            _runHooksPost(hooks, contexts);
-        }
+        // Always run postCheck per ERC-7579 spec, even if execution failed
+        _runHooksPost(hooks, contexts);
     }
 
     /// @notice Executes a transaction on behalf of the account from an executor module
@@ -424,9 +421,10 @@ contract ModularSmartAccount is
 
         (bool success, bytes[] memory results) = _dispatchExecute(mode, executionCalldata);
 
-        // Only run postCheck if execution succeeded
+        // Always run postCheck per ERC-7579 spec, even if execution failed
+        _runHooksPost(hooks, contexts);
+
         if (success) {
-            _runHooksPost(hooks, contexts);
             return results;
         }
 
