@@ -19,7 +19,7 @@ contract ExecTypeTryHookIssuesTest is ModularAccountTestBase {
         stateTracker = new StateTrackingHookModule();
     }
 
-    /// @notice postCheck runs even when execution fails with EXECTYPE_TRY
+    /// @notice postCheck runs even when execution fails with EXECTYPE_TRY (per ERC-7579 spec)
     function test_tryExec_hookPostCheckRunsOnFailure() public {
         (ModularSmartAccount account,, address owner) = setupAccount();
 
@@ -35,7 +35,7 @@ contract ExecTypeTryHookIssuesTest is ModularAccountTestBase {
 
         (uint256 attempts, uint256 successes) = stateTracker.getStats(address(account));
         assertEq(attempts, 1, "preCheck should run");
-        assertEq(successes, 0, "postCheck should NOT run for failed execution");
+        assertEq(successes, 1, "postCheck should run even for failed execution per ERC-7579");
         assertEq(counter.counters(address(account)), 0, "Execution should have failed");
     }
 
@@ -54,7 +54,7 @@ contract ExecTypeTryHookIssuesTest is ModularAccountTestBase {
         account.execute(mode, encodeExecutionBatch(batch));
     }
 
-    /// @notice DEFAULT mode reverts entire tx; TRY mode runs postCheck despite failure
+    /// @notice DEFAULT mode reverts entire tx; TRY mode allows execution to continue but still runs postCheck
     function test_tryExec_inconsistentWithDefaultMode() public {
         (ModularSmartAccount account,, address owner) = setupAccount();
 
@@ -82,6 +82,6 @@ contract ExecTypeTryHookIssuesTest is ModularAccountTestBase {
 
         (uint256 attempts2, uint256 successes2) = stateTracker.getStats(address(account));
         assertEq(attempts2, 1, "TRY mode: preCheck ran");
-        assertEq(successes2, 0, "TRY mode: postCheck should NOT run on failed execution");
+        assertEq(successes2, 1, "TRY mode: postCheck runs on failed execution per ERC-7579");
     }
 }
