@@ -15,6 +15,9 @@ contract ModularSmartAccountFactory {
     /// @notice The implementation contract for all deployed accounts
     ModularSmartAccount public immutable ACCOUNT_IMPLEMENTATION;
 
+    /// @notice Thrown when attempting to create an account with a zero address owner
+    error ZeroAddressOwner();
+
     /// @notice Emitted when a new account is created
     /// @param account The address of the newly created account
     /// @param owner The owner address of the account
@@ -34,6 +37,8 @@ contract ModularSmartAccountFactory {
     /// @param salt CREATE2 salt for deterministic deployment
     /// @return ret The ModularSmartAccount instance (whether existing or newly created)
     function createAccount(address owner, uint256 salt) external returns (ModularSmartAccount ret) {
+        if (owner == address(0)) revert ZeroAddressOwner();
+
         address addr = getAddress(owner, salt);
         uint256 codeSize = addr.code.length;
         if (codeSize > 0) {
