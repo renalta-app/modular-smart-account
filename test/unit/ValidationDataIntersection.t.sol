@@ -40,6 +40,7 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         vm.prank(owner);
         account.installModule(MODULE_TYPE_VALIDATOR, address(validator), validatorInitData);
 
+        // forge-lint: disable-next-line(unsafe-typecast)
         bytes memory policyInitData = abi.encode(bytes32(0), uint48(1000), uint48(2000));
         vm.prank(owner);
         account.installModule(MODULE_TYPE_POLICY, address(policy), policyInitData);
@@ -56,6 +57,7 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
         // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
         assertEq(actualValidAfter, 1200, "validAfter should be max(1200, 1000)");
@@ -88,6 +90,7 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
         // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
         assertEq(actualValidAfter, 1200, "validAfter should be max(1000, 1200)");
@@ -122,6 +125,7 @@ contract ValidationDataIntersectionTest is ModularAccountTestBase {
         // casting to 'uint48' is safe because we're extracting a 48-bit field from validationData
         // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidAfter = uint48(validationData >> 208);
+        // forge-lint: disable-next-line(unsafe-typecast)
         uint48 actualValidUntil = uint48((validationData >> 160) & 0xFFFFFFFFFFFF);
 
         assertEq(actualValidAfter, 1000, "validAfter should be preserved from validator");
@@ -324,6 +328,7 @@ contract TimeBoundedPolicy is IPolicy {
 /// @notice Simple policy that always returns 0 (success, no time bounds)
 contract SimplePolicyModule is IPolicy {
     function onInstall(bytes calldata) external override {}
+
     function onUninstall(bytes calldata) external override {}
 
     function isModuleType(uint256 moduleTypeId) external pure override returns (bool) {
@@ -346,6 +351,7 @@ contract SimplePolicyModule is IPolicy {
 /// @notice Policy that always fails (returns 1)
 contract RejectingPolicyModule is IPolicy {
     function onInstall(bytes calldata) external override {}
+
     function onUninstall(bytes calldata) external override {}
 
     function isModuleType(uint256 moduleTypeId) external pure override returns (bool) {

@@ -320,3 +320,73 @@ contract TimeBoundedValidatorModule is IERC7579Validator {
         return signer == cfg.owner ? IERC1271.isValidSignature.selector : bytes4(0xffffffff);
     }
 }
+
+/// @dev Validator module that returns an aggregator address in validation data
+///      Used to test proper handling of ERC-4337 aggregator addresses (odd and even)
+contract AggregatorValidatorModule is IERC7579Validator {
+    using ECDSA for bytes32;
+
+    error AlreadyInstalled(address account);
+    error NotInstalled(address account);
+    error InvalidOwner();
+
+    struct Config {
+        address owner;
+        bool installed;
+        address aggregator;
+    }
+
+    mapping(address => Config) private configs;
+
+    function onInstall(bytes calldata data) external override {
+        Config storage cfg = configs[msg.sender];
+        if (cfg.installed) revert AlreadyInstalled(msg.sender);
+        (address owner, address aggregator) = abi.decode(data, (address, address));
+        if (owner == address(0)) revert InvalidOwner();
+        cfg.owner = owner;
+        cfg.aggregator = aggregator;
+        cfg.installed = true;
+    }
+
+    function onUninstall(bytes calldata) external override {
+        Config storage cfg = configs[msg.sender];
+        if (!cfg.installed) revert NotInstalled(msg.sender);
+        delete configs[msg.sender];
+    }
+
+    function isModuleType(uint256 moduleTypeId) external pure override returns (bool) {
+        return moduleTypeId == MODULE_TYPE_VALIDATOR;
+    }
+
+    function validateUserOp(PackedUserOperation calldata userOp, bytes32 userOpHash)
+        external
+        view
+        override
+        returns (uint256)
+    {
+        Config storage cfg = configs[msg.sender];
+        if (!cfg.installed) revert NotInstalled(msg.sender);
+        address signer = ECDSA.recover(userOpHash, userOp.signature);
+        bool sigValid = signer == cfg.owner;
+
+        // Return validation data with aggregator address
+        // If signature is valid, return aggregator; otherwise return SIG_VALIDATION_FAILED
+        return ERC4337Utils.packValidationData(
+            sigValid ? cfg.aggregator : address(uint160(ERC4337Utils.SIG_VALIDATION_FAILED)), 0, 0
+        );
+    }
+
+    function isValidSignatureWithSender(address, bytes32 hash, bytes calldata signature)
+        external
+        view
+        override
+        returns (bytes4)
+    {
+        Config storage cfg = configs[msg.sender];
+        if (!cfg.installed) {
+            return 0xffffffff;
+        }
+        address signer = ECDSA.recover(hash, signature);
+        return signer == cfg.owner ? IERC1271.isValidSignature.selector : bytes4(0xffffffff);
+    }
+}
