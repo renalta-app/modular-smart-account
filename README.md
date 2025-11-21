@@ -1,7 +1,3 @@
-> [!CAUTION]
-> These contracts are currently undergoing security audit. Do not use in production until the audit is complete.
-
-
 # Modular Smart Account
 
 These contracts define a new smart wallet built to take advantage of recent Ethereum Improvement Proposals (EIPs). Most notably, this is the first implementation of a smart contract to our knowledge with native, combined support for ERC-7702 and ERC-7579.
@@ -26,8 +22,8 @@ This implementation aims to be fully compatible with the following EIPs.
 
 On all supported chains:
 
-- Implementation: TODO
-- Factory: TODO
+- Factory: 0x00af01003c0beabb4d128ba12145bc7903b8dc26
+- Implementation: 0x00aa0100499ca89110aecf2b743032a07cccf23c
 
 Note: This smart contract requires Entrypoint v0.8, which is the first version to natively support ERC-7702.
 
@@ -35,9 +31,12 @@ Note: This smart contract requires Entrypoint v0.8, which is the first version t
 
 Supported Chains:
 
-- Base Sepolia
-
-TODO: additional deployments post audit.
+- Ethereum Mainnet
+- Ethereum Sepolia
+- Base
+- Optimism
+- Arbitrum
+- Linea
 
 To request deployment to an additional chain, please create a Github issue.
 
@@ -49,7 +48,7 @@ This project uses [Foundry](https://getfoundry.sh/introduction/overview).
 # Install all forge dependencies (also installs git submodules)
 forge install
 
-# Install pnpm dependencies for libs where needed
+# Install dependencies for libs where needed
 cd lib/modulekit && pnpm install
 cd lib/smartsessions && pnpm install
 
@@ -58,7 +57,7 @@ forge build
 
 ## Benchmarks
 
-TODO: add to github.com/zerodevapp/aa-benchmark post audit
+TODO: add to github.com/zerodevapp/aa-benchmark
 
 ## Contributing
 

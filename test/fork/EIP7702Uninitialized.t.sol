@@ -50,7 +50,7 @@ contract EIP7702UninitializedForkTest is ForkHelpers {
 
     /// fetchDelegate correctly reads EIP-7702 bytecode
     function test_fetchDelegateWithEtchedCode() public {
-        address eoa = makeAddr("eoa");
+        (address eoa,) = makeAddrAndKey("test_eoa_unique");
 
         address delegateBefore = EIP7702Utils.fetchDelegate(eoa);
         assertEq(delegateBefore, address(0), "No delegation before setup");
@@ -63,7 +63,7 @@ contract EIP7702UninitializedForkTest is ForkHelpers {
 
     /// _getEffectiveOwner logic simulation for uninitialized EIP-7702 accounts
     function test_getEffectiveOwnerLogicSimulation() public {
-        address eoa = makeAddr("eoa");
+        (address eoa,) = makeAddrAndKey("test_owner_logic_eoa");
         setupEip7702Delegation(eoa, address(implementation));
 
         address delegate = EIP7702Utils.fetchDelegate(eoa);

@@ -20,7 +20,8 @@ contract ModularSmartAccountFactoryTest is ModularAccountTestBase {
 
         fund(randomCaller, 1 ether);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
     }
 
     /// @notice Test factory deploys with correct entryPoint

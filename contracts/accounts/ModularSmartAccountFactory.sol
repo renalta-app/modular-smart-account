@@ -4,7 +4,6 @@ pragma solidity 0.8.30;
 import {Create2} from "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {IEntryPoint} from "@openzeppelin/contracts/interfaces/draft-IERC4337.sol";
 import {ModularSmartAccount} from "./ModularSmartAccount.sol";
 
 /// @title ModularSmartAccountFactory
@@ -24,10 +23,10 @@ contract ModularSmartAccountFactory {
     /// @param salt The CREATE2 salt used for deployment
     event AccountCreated(address indexed account, address indexed owner, uint256 salt);
 
-    /// @notice Deploys the account implementation
-    /// @param _entryPoint The ERC-4337 EntryPoint contract
-    constructor(IEntryPoint _entryPoint) {
-        ACCOUNT_IMPLEMENTATION = new ModularSmartAccount(_entryPoint);
+    /// @notice Sets the account implementation address
+    /// @param _implementation The deployed ModularSmartAccount implementation
+    constructor(address _implementation) {
+        ACCOUNT_IMPLEMENTATION = ModularSmartAccount(payable(_implementation));
     }
 
     /// @notice Create an account and return its address

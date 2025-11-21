@@ -153,7 +153,8 @@ abstract contract ForkTestBase is ModularAccountTestBase {
         (owner, ownerKey) = createAccountOwner();
         fund(owner, TEN_ETH);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
         account = factory.createAccount(owner, 0);
         fund(address(account), TEN_ETH);
     }
@@ -171,7 +172,8 @@ abstract contract ForkTestBase is ModularAccountTestBase {
         (owner, ownerKey) = createAccountOwner();
         fund(owner, TEN_ETH);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
         account = factory.createAccount(owner, salt);
         fund(address(account), TEN_ETH);
     }

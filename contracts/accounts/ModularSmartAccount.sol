@@ -76,6 +76,12 @@ contract ModularSmartAccount is
     /// @param mode The unsupported execution mode
     error UnsupportedExecutionMode(bytes32 mode);
 
+    /// @notice Thrown when direct execute() is called - use execute(bytes32,bytes) instead
+    error DirectExecuteDisabled();
+
+    /// @notice Thrown when direct executeBatch() is called - use execute(bytes32,bytes) in batch mode
+    error DirectExecuteBatchDisabled();
+
     /// @notice Emitted when the module registry is configured
     /// @param registry The address of the module registry
     event ModuleRegistryConfigured(address indexed registry);
@@ -338,14 +344,14 @@ contract ModularSmartAccount is
     /// @dev This inherited function from BaseAccount bypasses ERC-7579 hooks.
     ///      All execution must go through execute(bytes32,bytes) to ensure hooks are invoked.
     function execute(address, uint256, bytes calldata) external override {
-        revert("ModularSmartAccount: use execute(bytes32,bytes)");
+        revert DirectExecuteDisabled();
     }
 
     /// @notice Disabled for security - use execute(bytes32,bytes) in batch mode instead
     /// @dev This inherited function from BaseAccount bypasses ERC-7579 hooks.
     ///      Use execute(bytes32,bytes) with CALLTYPE_BATCH mode to ensure hooks are invoked.
     function executeBatch(Call[] calldata) external override {
-        revert("ModularSmartAccount: use execute(bytes32,bytes) in batch mode");
+        revert DirectExecuteBatchDisabled();
     }
 
     /// @notice Executes a UserOperation on behalf of the account

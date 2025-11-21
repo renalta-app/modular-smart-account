@@ -30,7 +30,8 @@ contract EntryPointIntegrationTest is ForkHelpers {
         (owner, ownerKey) = createAccountOwner();
         fund(owner, TEN_ETH);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
     }
 
     function test_fork_entryPointExists() public view {
