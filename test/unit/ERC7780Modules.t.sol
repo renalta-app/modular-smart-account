@@ -42,7 +42,8 @@ contract ERC7780ModulesTest is ModularAccountTestBase {
 
         entryPoint = IEntryPoint(ENTRYPOINT_V08);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
         account = factory.createAccount(owner, 0);
 
         policyModule = new TestPolicyModule();

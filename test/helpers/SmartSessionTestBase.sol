@@ -49,7 +49,8 @@ abstract contract SmartSessionTestBase is ForkHelpers {
         (sessionKey, sessionKeyPrivateKey) = createAccountOwner();
         fund(sessionKey, ONE_ETH);
 
-        factory = new ModularSmartAccountFactory(entryPoint);
+        ModularSmartAccount implementation = new ModularSmartAccount(entryPoint);
+        factory = new ModularSmartAccountFactory(address(implementation));
         account = factory.createAccount(owner, 0);
         fund(address(account), 10 ether);
 

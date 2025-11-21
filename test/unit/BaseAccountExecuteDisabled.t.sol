@@ -17,13 +17,8 @@ contract BaseAccountExecuteDisabledTest is ModularAccountTestBase {
         address recipient = createAddress();
 
         vm.prank(owner);
-        (bool success, bytes memory returnData) =
-            address(account).call(abi.encodeWithSelector(BASE_ACCOUNT_EXECUTE_SELECTOR, recipient, 0, ""));
-        assertFalse(success, "Call should have failed");
-        assertEq(
-            string(returnData),
-            string(abi.encodeWithSignature("Error(string)", "ModularSmartAccount: use execute(bytes32,bytes)"))
-        );
+        vm.expectRevert(ModularSmartAccount.DirectExecuteDisabled.selector);
+        account.execute(recipient, 0, "");
     }
 
     /// @dev BaseAccount.execute(address,uint256,bytes) must revert even from EntryPoint
@@ -32,13 +27,8 @@ contract BaseAccountExecuteDisabledTest is ModularAccountTestBase {
         address recipient = createAddress();
 
         vm.prank(ENTRYPOINT_V08);
-        (bool success, bytes memory returnData) =
-            address(account).call(abi.encodeWithSelector(BASE_ACCOUNT_EXECUTE_SELECTOR, recipient, 0, ""));
-        assertFalse(success, "Call should have failed");
-        assertEq(
-            string(returnData),
-            string(abi.encodeWithSignature("Error(string)", "ModularSmartAccount: use execute(bytes32,bytes)"))
-        );
+        vm.expectRevert(ModularSmartAccount.DirectExecuteDisabled.selector);
+        account.execute(recipient, 0, "");
     }
 
     /// @dev BaseAccount.executeBatch(Call[]) must revert from owner
@@ -49,8 +39,8 @@ contract BaseAccountExecuteDisabledTest is ModularAccountTestBase {
         calls[0] = BaseAccount.Call({target: createAddress(), value: 0, data: ""});
 
         vm.prank(owner);
-        (bool success,) = address(account).call(abi.encodeWithSelector(BASE_ACCOUNT_EXECUTE_BATCH_SELECTOR, calls));
-        assertFalse(success, "Call should have failed");
+        vm.expectRevert(ModularSmartAccount.DirectExecuteBatchDisabled.selector);
+        account.executeBatch(calls);
     }
 
     /// @dev BaseAccount.executeBatch(Call[]) must revert even from EntryPoint
@@ -61,7 +51,7 @@ contract BaseAccountExecuteDisabledTest is ModularAccountTestBase {
         calls[0] = BaseAccount.Call({target: createAddress(), value: 0, data: ""});
 
         vm.prank(ENTRYPOINT_V08);
-        (bool success,) = address(account).call(abi.encodeWithSelector(BASE_ACCOUNT_EXECUTE_BATCH_SELECTOR, calls));
-        assertFalse(success, "Call should have failed");
+        vm.expectRevert(ModularSmartAccount.DirectExecuteBatchDisabled.selector);
+        account.executeBatch(calls);
     }
 }
