@@ -22,8 +22,8 @@ This implementation aims to be fully compatible with the following EIPs.
 
 On all supported chains:
 
-- Factory: 0x00af01003c0beabb4d128ba12145bc7903b8dc26
-- Implementation: 0x00aa0100499ca89110aecf2b743032a07cccf23c
+- Factory: 0x00af0100b5d4dd9bacc054282c103530287e7305
+- Implementation: 0x00aa01009bc20e8a223c995a1527f0cbe9340bd5
 
 Note: This smart contract requires Entrypoint v0.8, which is the first version to natively support ERC-7702.
 
@@ -37,6 +37,7 @@ Supported Chains:
 - Optimism
 - Arbitrum
 - Linea
+- Polygon
 
 To request deployment to an additional chain, please create a Github issue.
 
