@@ -113,7 +113,7 @@ contract ModularSmartAccount is
 
     /// @dev Internal function to reduce contract size by wrapping modifier logic
     function _onlyOwnerOrEntryPoint() internal view {
-        if (msg.sender != owner() && msg.sender != address(entryPoint())) {
+        if (msg.sender != owner() && msg.sender != address(entryPoint()) && msg.sender != address(this)) {
             revert Unauthorized();
         }
     }
